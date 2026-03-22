@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Environment files (contain secrets)
+.env
+.env.*
+!.env.example
+
+# MCP config (contains DB credentials)
+.mcp.json
+
+# Claude Code local settings (machine-specific permissions)
+.claude/settings.local.json
+
+# Superpowers brainstorm session files (auto-generated)
+.superpowers/
+
+# Build output
+client/dist/
+server/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
