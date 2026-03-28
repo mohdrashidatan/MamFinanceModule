@@ -156,9 +156,9 @@ async function main() {
       const assignments  = allocateStudents(shuffled, classes);
       const skipped      = shuffled.length - assignments.length;
 
-      await insertRosterRows(conn, assignments, today);
+      const inserted = await insertRosterRows(conn, assignments, today);
 
-      totalAssigned += assignments.length;
+      totalAssigned += inserted;
       totalSkipped  += skipped;
 
       // Per-class summary
