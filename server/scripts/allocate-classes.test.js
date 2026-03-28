@@ -41,8 +41,9 @@ test('shuffle: contains all original elements', () => {
 test('shuffle: does not mutate original array', () => {
   const input = [1, 2, 3];
   const copy = [...input];
-  shuffle(input);
+  const result = shuffle(input);
   assert.deepStrictEqual(input, copy);
+  assert.notStrictEqual(result, input);
 });
 
 // ── allocateStudents ──────────────────────────────────────────────────────────
