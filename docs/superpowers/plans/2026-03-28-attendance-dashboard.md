@@ -477,7 +477,7 @@ export function useAttendanceDashboard(from, to) {
       })
       .catch((err) => {
         if (!cancelled) {
-          const msg = err.response?.data?.message ?? 'Failed to load attendance data';
+          const msg = err.response?.data?.error?.message ?? 'Failed to load attendance data';
           setError(msg);
           toast.error(msg);
         }
