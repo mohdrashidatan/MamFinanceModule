@@ -2,13 +2,7 @@
 
 const assert = require('assert');
 
-// ─── Stubs (paste implementations here when Task 2 is done) ───────────────────
-// Replace these stubs with the real imports once allocate-classes.js exists:
-// const { shuffle, allocateStudents } = require('./allocate-classes');
-
-function shuffle(arr) { throw new Error('not implemented'); }
-function allocateStudents(students, classes) { throw new Error('not implemented'); }
-// ─────────────────────────────────────────────────────────────────────────────
+const { shuffle, allocateStudents } = require('./allocate-classes');
 
 let passed = 0;
 let failed = 0;
