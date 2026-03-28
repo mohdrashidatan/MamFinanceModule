@@ -128,3 +128,68 @@ async function insertRosterRows(conn, assignments, today) {
   );
   return result.affectedRows;
 }
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+
+async function main() {
+  const conn = await createConnection();
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+  try {
+    // 1. Soft-delete all existing roster entries
+    const deleted = await softDeleteRoster(conn);
+    console.log(`\nSoft-deleted ${deleted} existing roster entries.`);
+
+    // 2. Allocate per age group
+    let totalAssigned = 0;
+    let totalSkipped  = 0;
+
+    for (const [ageStr, levelName] of Object.entries(AGE_LEVEL_MAP)) {
+      const age = parseInt(ageStr, 10);
+
+      const classes  = await fetchClassesByLevel(conn, levelName);
+      const students = await fetchStudentsByAge(conn, age);
+
+      if (students.length === 0) continue;
+
+      const shuffled     = shuffle(students);
+      const assignments  = allocateStudents(shuffled, classes);
+      const skipped      = shuffled.length - assignments.length;
+
+      await insertRosterRows(conn, assignments, today);
+
+      totalAssigned += assignments.length;
+      totalSkipped  += skipped;
+
+      // Per-class summary
+      console.log(`\n${levelName} (age ${age}) — ${students.length} students, ${classes.length} classes`);
+      const countPerClass = {};
+      for (const a of assignments) {
+        countPerClass[a.class_id] = (countPerClass[a.class_id] || 0) + 1;
+      }
+      for (const cls of classes) {
+        const count = countPerClass[cls.class_id] || 0;
+        console.log(`  ${cls.class_name.padEnd(35)} ${count}/${cls.classcap}`);
+      }
+      if (skipped > 0) {
+        console.log(`  ⚠ ${skipped} student(s) skipped — classes full`);
+      }
+    }
+
+    console.log(`\n─────────────────────────────────────`);
+    console.log(`Total assigned : ${totalAssigned}`);
+    console.log(`Total skipped  : ${totalSkipped}`);
+    console.log(`─────────────────────────────────────\n`);
+
+  } finally {
+    await conn.end();
+  }
+}
+
+// Only run main() when executed directly (not when required by tests)
+if (require.main === module) {
+  main().catch(err => {
+    console.error('Allocation failed:', err.message);
+    process.exit(1);
+  });
+}
