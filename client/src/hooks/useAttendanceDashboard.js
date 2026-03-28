@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
  */
 export function useAttendanceDashboard(from, to) {
   const [data, setData]           = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(Boolean(from && to));
   const [error, setError]         = useState(null);
 
   useEffect(() => {

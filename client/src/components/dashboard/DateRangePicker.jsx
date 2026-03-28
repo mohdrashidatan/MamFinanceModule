@@ -21,7 +21,7 @@ export function DateRangePicker({ from, to, onChange }) {
 
   function validate(f, t) {
     if (!f || !t) return '';
-    if (f >= t)  return '"From" must be before "To"';
+    if (f > t)  return '"From" must be before or equal to "To"';
     const diffDays = Math.round((new Date(t + 'T00:00:00') - new Date(f + 'T00:00:00')) / 86400000);
     if (diffDays > MAX_RANGE_DAYS) return `Range cannot exceed ${MAX_RANGE_DAYS} days`;
     return '';

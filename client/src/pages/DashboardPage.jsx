@@ -28,6 +28,8 @@ export default function DashboardPage() {
   const { data, isLoading } = useAttendanceDashboard(from, to);
 
   const kpi = data?.kpi ?? null;
+  const isEmpty = data !== null && (data.chart?.length === 0);
+  const kpiDisplay = isEmpty ? null : kpi;
 
   function handleRangeChange(newFrom, newTo) {
     setFrom(newFrom);
@@ -49,8 +51,8 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <KpiCard
           label="Overall Rate"
-          value={kpi ? `${kpi.overallRate}%` : '—'}
-          delta={kpi?.deltaRate ?? 0}
+          value={kpiDisplay ? `${kpiDisplay.overallRate}%` : '—'}
+          delta={kpiDisplay?.deltaRate ?? 0}
           deltaLabel="%"
           higherIsBetter={true}
           color="text-blue-500"
@@ -58,8 +60,8 @@ export default function DashboardPage() {
         />
         <KpiCard
           label="Total Absent"
-          value={kpi ? String(kpi.totalAbsent) : '—'}
-          delta={kpi?.deltaAbsent ?? 0}
+          value={kpiDisplay ? String(kpiDisplay.totalAbsent) : '—'}
+          delta={kpiDisplay?.deltaAbsent ?? 0}
           deltaLabel=""
           higherIsBetter={false}
           color="text-rose-500"
@@ -67,8 +69,8 @@ export default function DashboardPage() {
         />
         <KpiCard
           label="Late Cases"
-          value={kpi ? String(kpi.lateCases) : '—'}
-          delta={kpi?.deltaLate ?? 0}
+          value={kpiDisplay ? String(kpiDisplay.lateCases) : '—'}
+          delta={kpiDisplay?.deltaLate ?? 0}
           deltaLabel=""
           higherIsBetter={false}
           color="text-amber-500"
@@ -76,8 +78,8 @@ export default function DashboardPage() {
         />
         <KpiCard
           label="Excused"
-          value={kpi ? String(kpi.excused) : '—'}
-          delta={kpi?.deltaExcused ?? 0}
+          value={kpiDisplay ? String(kpiDisplay.excused) : '—'}
+          delta={kpiDisplay?.deltaExcused ?? 0}
           deltaLabel=""
           higherIsBetter={false}
           color="text-emerald-500"

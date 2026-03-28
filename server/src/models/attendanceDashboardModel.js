@@ -92,14 +92,18 @@ async function getAttendanceDashboard(from, to) {
   `;
 
   // Previous period: same length, immediately before from
+  // Use UTC arithmetic to avoid timezone-related off-by-one day errors
+  function addDays(dateStr, n) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d + n));
+    return dt.toISOString().slice(0, 10);
+  }
+
   const fromDate = new Date(from + 'T00:00:00');
   const toDate   = new Date(to   + 'T00:00:00');
   const n        = Math.round((toDate - fromDate) / 86400000) + 1;
-  const prevTo   = new Date(fromDate); prevTo.setDate(prevTo.getDate() - 1);
-  const prevFrom = new Date(prevTo);   prevFrom.setDate(prevFrom.getDate() - (n - 1));
-
-  const prevFromStr = prevFrom.toISOString().slice(0, 10);
-  const prevToStr   = prevTo.toISOString().slice(0, 10);
+  const prevToStr   = addDays(from, -1);
+  const prevFromStr = addDays(from, -n);
 
   const [[currentRows], [previousRows]] = await Promise.all([
     pool.execute(periodSql, [from, to]),
