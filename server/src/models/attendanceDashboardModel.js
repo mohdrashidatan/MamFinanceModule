@@ -15,7 +15,7 @@ function buildResponse(currentRows, previousRows) {
   const dateMap = {};
   for (const row of currentRows) {
     const d = row.date instanceof Date
-      ? row.date.toISOString().slice(0, 10)
+      ? `${row.date.getFullYear()}-${String(row.date.getMonth() + 1).padStart(2, '0')}-${String(row.date.getDate()).padStart(2, '0')}`
       : String(row.date).slice(0, 10);
     if (!dateMap[d]) {
       dateMap[d] = { date: d, present: 0, absent: 0, late: 0, excused: 0, onLeave: 0 };
@@ -113,4 +113,64 @@ async function getAttendanceDashboard(from, to) {
   return buildResponse(currentRows, previousRows);
 }
 
-module.exports = { getAttendanceDashboard, buildResponse };
+/**
+ * Fetch attendance heatmap data (presence % per class per weekday) for a date range.
+ * @param {string} from  YYYY-MM-DD
+ * @param {string} to    YYYY-MM-DD
+ * @returns {Promise<Array>}
+ */
+async function getAttendanceHeatmap(from, to) {
+  const sql = `
+    SELECT
+      c.class_id,
+      c.class_name,
+      c.class_code,
+      DAYOFWEEK(s.attendance_date)                                   AS dow,
+      COUNT(*)                                                       AS total,
+      SUM(CASE WHEN e.status = 'present' THEN 1 ELSE 0 END)         AS present_count
+    FROM attendance_entry e
+    JOIN attendance_session s
+      ON s.attendance_session_id = e.attendance_session_id
+    JOIN class c
+      ON c.class_id = s.class_id
+    WHERE s.attendance_date BETWEEN ? AND ?
+      AND e.active = 1
+      AND s.active = 1
+      AND c.active = 1
+    GROUP BY c.class_id, c.class_name, c.class_code, DAYOFWEEK(s.attendance_date)
+  `;
+
+  const [rows] = await pool.execute(sql, [from, to]);
+
+  // DOW mapping: MySQL DAYOFWEEK 1=Sun,2=Mon,...,7=Sat
+  const dowKey = { 2: 'mon', 3: 'tue', 4: 'wed', 5: 'thu', 6: 'fri' };
+
+  // Build a map keyed by class_id
+  const classMap = {};
+  for (const row of rows) {
+    const id = row.class_id;
+    if (!classMap[id]) {
+      classMap[id] = {
+        classId:   id,
+        className: row.class_name,
+        classCode: row.class_code,
+        mon: null,
+        tue: null,
+        wed: null,
+        thu: null,
+        fri: null,
+      };
+    }
+    const key = dowKey[row.dow];
+    if (key) { // weekends (dow 1=Sun, 7=Sat) are excluded from the heatmap
+      const total        = Number(row.total);
+      const presentCount = Number(row.present_count);
+      const pct          = total > 0 ? Math.round((presentCount / total) * 1000) / 10 : 0;
+      classMap[id][key]  = { pct, total };
+    }
+  }
+
+  return Object.values(classMap).sort((a, b) => a.className.localeCompare(b.className));
+}
+
+module.exports = { getAttendanceDashboard, buildResponse, getAttendanceHeatmap };

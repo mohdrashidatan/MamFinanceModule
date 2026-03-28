@@ -4,6 +4,8 @@ import { KpiCard }          from '@/components/dashboard/KpiCard';
 import { AttendanceChart }  from '@/components/dashboard/AttendanceChart';
 import { DateRangePicker }  from '@/components/dashboard/DateRangePicker';
 import { useAttendanceDashboard } from '@/hooks/useAttendanceDashboard';
+import { useAttendanceHeatmap }   from '@/hooks/useAttendanceHeatmap';
+import { AttendanceHeatmap }      from '@/components/dashboard/AttendanceHeatmap';
 
 /** Format a Date as YYYY-MM-DD using local timezone */
 function localYMD(d = new Date()) {
@@ -25,7 +27,9 @@ export default function DashboardPage() {
   const [from, setFrom] = useState(() => daysAgo(14));
   const [to,   setTo]   = useState(() => today());
 
-  const { data, isLoading } = useAttendanceDashboard(from, to);
+  const { data, isLoading }             = useAttendanceDashboard(from, to);
+  const { data: heatmapData,
+          isLoading: heatmapLoading }   = useAttendanceHeatmap(from, to);
 
   const kpi = data?.kpi ?? null;
   const isEmpty = data !== null && (data.chart?.length === 0);
@@ -40,11 +44,14 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-6 p-6">
 
       {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-semibold">Attendance Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          School-wide attendance summary
-        </p>
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Attendance Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            School-wide attendance summary
+          </p>
+        </div>
+        <DateRangePicker from={from} to={to} onChange={handleRangeChange} />
       </div>
 
       {/* KPI cards */}
@@ -90,17 +97,17 @@ export default function DashboardPage() {
       {/* Attendance chart */}
       <Card>
         <CardHeader className="pb-2">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle className="text-base font-medium">
-              Attendance Trend — Stacked by Status
-            </CardTitle>
-            <DateRangePicker from={from} to={to} onChange={handleRangeChange} />
-          </div>
+          <CardTitle className="text-base font-medium">
+            Attendance Trend — Stacked by Status
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <AttendanceChart data={data?.chart ?? []} isLoading={isLoading} />
         </CardContent>
       </Card>
+
+      {/* Attendance heatmap */}
+      <AttendanceHeatmap data={heatmapData ?? []} isLoading={heatmapLoading} />
 
     </div>
   );
