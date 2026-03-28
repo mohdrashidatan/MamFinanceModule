@@ -5,6 +5,10 @@ const pool = require('../config/db');
 /**
  * Transforms raw query rows into the API response shape.
  * Exported for unit testing.
+ *
+ * @param {{ date: string, status: string, count: number|string }[]} currentRows
+ * @param {{ status: string, count: number|string }[]} previousRows
+ * @returns {{ kpi: object, chart: object[] }}
  */
 function buildResponse(currentRows, previousRows) {
   // Chart: group by date, pivot status
@@ -26,6 +30,7 @@ function buildResponse(currentRows, previousRows) {
   for (const row of currentRows) {
     cur[row.status] = (cur[row.status] || 0) + Number(row.count);
   }
+  // on_leave is included in the denominator for overallRate but not exposed as a separate KPI field
   const curTotal = Object.values(cur).reduce((a, b) => a + b, 0);
   const curRate  = curTotal > 0 ? Math.round((cur.present / curTotal) * 1000) / 10 : 0;
 
