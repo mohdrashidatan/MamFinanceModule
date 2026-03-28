@@ -5,15 +5,20 @@ import { AttendanceChart }  from '@/components/dashboard/AttendanceChart';
 import { DateRangePicker }  from '@/components/dashboard/DateRangePicker';
 import { useAttendanceDashboard } from '@/hooks/useAttendanceDashboard';
 
-/** Returns YYYY-MM-DD string for a date N days before today */
+/** Format a Date as YYYY-MM-DD using local timezone */
+function localYMD(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Returns YYYY-MM-DD string for a date N days before today (local timezone) */
 function daysAgo(n) {
   const d = new Date();
   d.setDate(d.getDate() - n);
-  return d.toISOString().slice(0, 10);
+  return localYMD(d);
 }
 
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  return localYMD();
 }
 
 export default function DashboardPage() {
