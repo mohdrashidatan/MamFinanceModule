@@ -12,6 +12,8 @@ const COLORS = {
   onLeave: '#6366f1',
 };
 
+const STATUS_ORDER = ['present', 'absent', 'late', 'excused', 'onLeave'];
+
 const LABELS = {
   present: 'Present',
   absent:  'Absent',
@@ -35,7 +37,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       <p className="font-medium mb-2">{label}</p>
       {payload.map((entry) => (
         <div key={entry.dataKey} className="flex justify-between gap-4">
-          <span style={{ color: entry.fill }}>{LABELS[entry.dataKey]}</span>
+          <span style={{ color: entry.color }}>{LABELS[entry.dataKey] ?? entry.dataKey}</span>
           <span className="font-mono font-medium">{entry.value}</span>
         </div>
       ))}
@@ -75,12 +77,12 @@ export function AttendanceChart({ data = [], isLoading = false }) {
           formatter={(value) => LABELS[value]}
           wrapperStyle={{ fontSize: 12 }}
         />
-        {Object.entries(COLORS).map(([key, color]) => (
+        {STATUS_ORDER.map((key) => (
           <Bar
             key={key}
             dataKey={key}
             stackId="attendance"
-            fill={color}
+            fill={COLORS[key]}
             isAnimationActive={false}
           />
         ))}
